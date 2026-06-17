@@ -31,13 +31,11 @@ export default function NoticeLabel() {
     }, []);
 
     return (
-        <div className="h-full shrink-0 flex items-center bg-gradient-to-r from-yellow-500 via-amber-400 to-yellow-500 shadow-lg overflow-hidden">
-            <img
-                ref={imgRef}
-                src="/logo_channel.png"
-                alt="Logo"
-                className="h-full w-auto object-contain"
-            />
-        </div>
+        <img
+            ref={imgRef}
+            src="/logo_channel.png"
+            alt="Logo"
+            className="h-3 sm:h-5 md:h-10 lg:h-full w-auto object-contain"
+        />
     );
 }

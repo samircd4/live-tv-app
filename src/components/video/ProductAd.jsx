@@ -1,7 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { tvService } from '../../api/tvService';
 
-export const ProductAd = ({ onClose }) => {
+export const ProductAd = ({ onClose, rotationIntervalMs }) => {
+    // Use env var as default
+    const defaultRotationInterval = parseInt(import.meta.env.VITE_PRODUCT_AD_ROTATION_INTERVAL_MS) || 5000;
+    const finalRotationInterval = rotationIntervalMs ?? defaultRotationInterval;
+
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isVisible, setIsVisible] = useState(false); // Controls opacity/slide state
@@ -43,12 +47,12 @@ export const ProductAd = ({ onClose }) => {
 
         slideTimerRef.current = setInterval(() => {
             fetchNextAd();
-        }, 5000);
+        }, finalRotationInterval);
 
         return () => {
             if (slideTimerRef.current) clearInterval(slideTimerRef.current);
         };
-    }, [loading, product]);
+    }, [loading, product, finalRotationInterval]);
 
     if (loading || !product) return null;
 
@@ -62,8 +66,7 @@ export const ProductAd = ({ onClose }) => {
 
     return (
         <div
-            // Changed from bottom-24 to bottom-40 to increase the gap from the ticker
-            className={`absolute bottom-48 left-1/2 -translate-x-1/2 w-[92%] sm:w-[85%] max-w-2xl bg-gray-950/95 backdrop-blur-md text-white p-4 rounded-2xl border border-yellow-500/40 flex items-center justify-between gap-4 z-40 shadow-2xl transition-all duration-500 ease-out transform ${isVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-10 scale-95 pointer-events-none'
+            className={`absolute bottom-14 left-1/2 -translate-x-1/2 w-[95%] sm:w-[85%] max-w-2xl bg-gray-950/95 backdrop-blur-md text-white p-3 sm:p-4 rounded-2xl border border-yellow-500/40 flex items-center justify-between gap-3 z-40 shadow-2xl transition-all duration-500 ease-out transform ${isVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-10 scale-95 pointer-events-none'
                 }`}
         >
             <a

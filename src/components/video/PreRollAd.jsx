@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { tvService } from '../../api/tvService';
 
-export const PreRollAd = ({ onClose, skipDelaySeconds = 10, totalDurationSeconds = 30 }) => {
+export const PreRollAd = ({ onClose, skipDelaySeconds, totalDurationSeconds }) => {
+    // Use env vars as defaults
+    const defaultSkipDelay = parseInt(import.meta.env.VITE_PREROLL_AD_SKIP_DELAY_SECONDS) || 10;
+    const defaultTotalDuration = parseInt(import.meta.env.VITE_PREROLL_AD_TOTAL_DURATION_SECONDS) || 30;
+    const finalSkipDelay = skipDelaySeconds ?? defaultSkipDelay;
+    const finalTotalDuration = totalDurationSeconds ?? defaultTotalDuration;
     const [product, setProduct] = useState(null);
-    const [secondsLeft, setSecondsLeft] = useState(totalDurationSeconds);
+    const [secondsLeft, setSecondsLeft] = useState(finalTotalDuration);
     const [secondsWatched, setSecondsWatched] = useState(0);
     const [loading, setLoading] = useState(true);
 
@@ -24,7 +29,6 @@ export const PreRollAd = ({ onClose, skipDelaySeconds = 10, totalDurationSeconds
     useEffect(() => {
         if (loading || !product) return;
 
-        // Countdown timer
         const timer = setInterval(() => {
             setSecondsLeft(prev => {
                 if (prev <= 1) {
@@ -43,57 +47,73 @@ export const PreRollAd = ({ onClose, skipDelaySeconds = 10, totalDurationSeconds
     if (loading || !product) return null;
 
     const productUrl = product.slug ? `https://sarker.shop/products/${product.slug}` : `https://sarker.shop`;
-    const canSkip = secondsWatched >= skipDelaySeconds;
+    const canSkip = secondsWatched >= finalSkipDelay;
 
     return (
-        <div className="absolute inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center">
-            <div className="w-[80%] h-[80%] max-w-4xl bg-gray-950 border border-yellow-500/30 rounded-3xl overflow-hidden flex flex-col md:flex-row relative shadow-[0_0_50px_rgba(0,0,0,0.8)] animate-fade-in select-text">
-                
-                {/* Visual Image & CTA Overlay */}
-                <div className="w-full md:w-1/2 h-48 md:h-full relative bg-gray-900 flex items-center justify-center overflow-hidden border-b md:border-b-0 md:border-r border-gray-850">
+        <div className="absolute inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-6">
+
+            {/* Skip / countdown button — always at top right, above modal */}
+            <div className="absolute top-3 right-3 z-[60]">
+                {canSkip ? (
+                    <button
+                        onClick={onClose}
+                        className="bg-white/15 hover:bg-white/25 text-white text-xs font-black px-4 py-2 rounded-full backdrop-blur-md border border-white/25 transition-all shadow-md cursor-pointer flex items-center gap-1.5 active:scale-95"
+                    >
+                        Skip Ad ➔
+                    </button>
+                ) : (
+                    <div className="bg-black/70 text-gray-400 text-xs font-bold px-3 py-2 rounded-full backdrop-blur-md border border-gray-800/80">
+                        Skip in <span className="text-yellow-400 font-mono font-black">{finalSkipDelay - secondsWatched}s</span>
+                    </div>
+                )}
+            </div>
+
+            {/* Ad Card — mobile: vertical stack, desktop: horizontal */}
+            <div className="w-full max-w-2xl bg-gray-950 border border-yellow-500/30 rounded-2xl overflow-hidden flex flex-col sm:flex-row shadow-[0_0_50px_rgba(0,0,0,0.8)] animate-fade-in select-text max-h-[90vh]">
+
+                {/* Product Image */}
+                <div className="w-full sm:w-2/5 h-44 sm:h-auto relative bg-gray-900 flex items-center justify-center overflow-hidden shrink-0">
                     {product.image || product.thumbnail || product.images?.[0]?.image ? (
-                        <img 
-                            src={product.image || product.thumbnail || product.images[0].image} 
-                            alt={product.name} 
-                            className="w-full h-full object-cover opacity-90 transition-transform duration-700 hover:scale-105"
+                        <img
+                            src={product.image || product.thumbnail || product.images[0].image}
+                            alt={product.name}
+                            className="w-full h-full object-cover opacity-90"
                         />
                     ) : (
-                        <span className="text-6xl">🎁</span>
+                        <span className="text-5xl">🎁</span>
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent flex items-end p-6">
-                        <div className="bg-black/60 border border-gray-850 rounded-full px-4 py-2.5 text-xs font-bold text-gray-300 backdrop-blur-sm shadow-lg">
-                            Ad ends in <span className="text-yellow-400 font-mono text-sm">{secondsLeft}s</span>
+                    {/* Countdown overlay on image */}
+                    <div className="absolute bottom-3 left-3">
+                        <div className="bg-black/70 border border-gray-700 rounded-full px-3 py-1 text-xs font-bold text-gray-300 backdrop-blur-sm">
+                            Ad ends in <span className="text-yellow-400 font-mono">{secondsLeft}s</span>
                         </div>
                     </div>
                 </div>
 
-                {/* Details & Counter Section */}
-                <div className="w-full md:w-1/2 flex flex-col justify-between p-8 text-left bg-gradient-to-b from-gray-950 to-neutral-900">
-                    <div className="flex flex-col gap-4">
+                {/* Product Details */}
+                <div className="flex flex-col justify-between p-5 sm:p-6 flex-1 overflow-y-auto">
+                    <div className="flex flex-col gap-3">
                         <span className="self-start text-[10px] font-extrabold uppercase bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-full border border-yellow-500/30 tracking-widest animate-pulse">
-                            Sponsored Promotion
+                            Sponsored
                         </span>
-                        <h2 className="text-xl md:text-2xl font-black text-white leading-tight line-clamp-2">
+                        <h2 className="text-base sm:text-xl font-black text-white leading-tight line-clamp-2">
                             {product.name}
                         </h2>
-                        <p className="text-gray-400 text-sm line-clamp-3 md:line-clamp-4 leading-relaxed">
-                            {product.short_description ? product.short_description.replace(/<[^>]*>/g, '') : "Check out this exclusive premium deal from Sarker Shop! Get top quality gadgets and accessories at unmatched pricing."}
+                        <p className="text-gray-400 text-xs sm:text-sm line-clamp-2 sm:line-clamp-3 leading-relaxed">
+                            {product.short_description
+                                ? product.short_description.replace(/<[^>]*>/g, '')
+                                : "Exclusive premium deal from Sarker Shop! Top quality gadgets at unmatched pricing."}
                         </p>
 
-                        {/* Meta Specs: Brand, Stock, Rating, and Review Counts */}
-                        <div className="flex flex-wrap items-center gap-3 text-xs text-gray-400 font-semibold border-t border-gray-900 pt-3">
+                        {/* Meta */}
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-gray-400 font-semibold border-t border-gray-800 pt-3">
                             {product.brand?.name && (
-                                <span className="bg-white/5 border border-white/10 px-2.5 py-1 rounded-md text-[11px]">
+                                <span className="bg-white/5 border border-white/10 px-2 py-0.5 rounded-md text-[11px]">
                                     Brand: <strong className="text-white">{product.brand.name}</strong>
                                 </span>
                             )}
-                            {product.stock_quantity !== undefined && (
-                                <span className="bg-white/5 border border-white/10 px-2.5 py-1 rounded-md text-[11px]">
-                                    Stock: <strong className="text-white">{product.stock_quantity} available</strong>
-                                </span>
-                            )}
                             <div className="flex items-center gap-1 ml-auto select-none">
-                                <span className="text-yellow-400 text-lg">
+                                <span className="text-yellow-400 text-sm">
                                     {"★".repeat(Math.round(parseFloat(product.rating) || 0))}
                                     {"☆".repeat(5 - Math.round(parseFloat(product.rating) || 0))}
                                 </span>
@@ -102,40 +122,23 @@ export const PreRollAd = ({ onClose, skipDelaySeconds = 10, totalDurationSeconds
                         </div>
                     </div>
 
-                    <div className="flex items-center justify-between border-t border-gray-800 pt-6">
+                    {/* Price + CTA */}
+                    <div className="flex items-center justify-between border-t border-gray-800 pt-4 mt-4">
                         <div className="flex flex-col">
-                            <span className="text-xs text-gray-500 font-bold uppercase tracking-wider">Price</span>
-                            <span className="text-2xl font-black text-yellow-500">
+                            <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Price</span>
+                            <span className="text-lg sm:text-2xl font-black text-yellow-500">
                                 {product.price ? `${product.price} BDT` : 'Check Store'}
                             </span>
                         </div>
-                        
-                        {/* Shop Deal CTA Button */}
-                        <a 
+                        <a
                             href={productUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="bg-yellow-500 hover:bg-yellow-400 text-black font-black uppercase text-xs tracking-wider px-5 py-2.5 rounded-xl shadow-md transition-transform transform hover:scale-105 cursor-pointer"
+                            className="bg-yellow-500 hover:bg-yellow-400 text-black font-black uppercase text-xs tracking-wider px-4 py-2.5 rounded-xl shadow-md transition-transform hover:scale-105 cursor-pointer active:scale-95"
                         >
                             Shop Deal ⚡
                         </a>
                     </div>
-                </div>
-
-                {/* Skip / Locked Skip Indicator */}
-                <div className="absolute top-4 right-4">
-                    {canSkip ? (
-                        <button 
-                            onClick={onClose}
-                            className="bg-white/10 hover:bg-white/20 text-white hover:text-yellow-400 text-xs font-black px-5 py-2.5 rounded-full backdrop-blur-md border border-white/25 transition-all shadow-md cursor-pointer flex items-center gap-1.5 active:scale-95"
-                        >
-                            Skip Ad ➔
-                        </button>
-                    ) : (
-                        <div className="bg-black/60 text-gray-400 text-xs font-bold px-4 py-2.5 rounded-full backdrop-blur-md border border-gray-800/80">
-                            Skip in <span className="text-yellow-400 font-mono font-black">{skipDelaySeconds - secondsWatched}s</span>
-                        </div>
-                    )}
                 </div>
             </div>
         </div>
