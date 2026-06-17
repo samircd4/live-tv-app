@@ -28,11 +28,10 @@ function App() {
                     {/* Public Info & Navigation Routes */}
                     <Route path="/about" element={<AboutPage />} />
                     <Route path="/contact" element={<ContactPage />} />
-                    <Route path="/" element={<CountriesPage />} />
-                    <Route path="/country/:slug" element={<ChannelsPage />} />
                     <Route path="/fifa-world-cup" element={<FifaWorldCupPage />} />
 
-                    {/* Player View: Live Stream + Sidebar + Dynamic Product Ads */}
+                    {/* Player View: Live Stream + Sidebar + Dynamic Product Ads (Homepage) */}
+                    <Route path="/" element={<WatchPage />} />
                     <Route
                         path="/watch/:channelId"
                         element={<WatchPage />}

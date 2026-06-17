@@ -106,7 +106,7 @@ const WatchPageContent = () => {
         const fetchSidebarData = async () => {
             try {
                 // Try to fetch from API first
-                const data = await tvService.getChannels(countrySlug);
+                const data = await tvService.getChannels();
                 let channelsList = Array.isArray(data) ? data : (data?.results || []);
 
                 // If no channels from API, use dummy data
