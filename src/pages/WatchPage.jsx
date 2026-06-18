@@ -500,7 +500,7 @@ const WatchPageContent = () => {
             filtered = filtered.filter(chan => favorites.includes(chan.id));
             // Only apply category filter when not in sports mode
             if (selectedCategory !== 'all') {
-                filtered = filtered.filter(chan => chan.category === selectedCategory);
+                filtered = filtered.filter(chan => chan.category?.toLowerCase() === selectedCategory.toLowerCase());
             }
         } else if (activeFilter === 'sports') {
             filtered = filtered.filter(chan =>
@@ -509,7 +509,7 @@ const WatchPageContent = () => {
         } else {
             // Category dropdown filter only applies when activeFilter is 'all'
             if (selectedCategory !== 'all') {
-                filtered = filtered.filter(chan => chan.category === selectedCategory);
+                filtered = filtered.filter(chan => chan.category?.toLowerCase() === selectedCategory.toLowerCase());
             }
         }
 
@@ -544,12 +544,12 @@ const WatchPageContent = () => {
                         style={{ aspectRatio: isCustomFullscreen ? undefined : undefined }}
                         onClick={handleVideoTap}
                     >
-                        {/* Mobile: Minimum height 60vh, Desktop: Keep 16:9 aspect ratio */}
+                        {/* Mobile: Minimum height 50vh, Desktop: Keep 16:9 aspect ratio */}
                         <style>{`
                             @media (max-width: 767px) {
                                 .video-container {
-                                    min-height: 60vh !important;
-                                    height: 60vh !important;
+                                    min-height: 30vh !important;
+                                    height: 30vh !important;
                                     aspect-ratio: unset !important;
                                     position: sticky !important;
                                     top: 0 !important;
@@ -691,7 +691,7 @@ const WatchPageContent = () => {
 
                     {/* ── CHANNEL INFO BAR (mobile only, below video) ── */}
                     {!isCustomFullscreen && (
-                        <div className="lg:hidden bg-gray-900/80 border-b border-gray-800 px-4 py-2.5 flex items-center gap-3 shrink-0">
+                        <div className="lg:hidden bg-gray-900 border-b border-gray-800 px-4 py-2.5 flex items-center gap-3 shrink-0 sticky top-[40vh] z-20">
                             {currentChannel?.logo && (
                                 <img src={currentChannel.logo} alt="" className="w-8 h-8 object-contain rounded bg-gray-950 border border-gray-800 p-0.5 shrink-0" />
                             )}
@@ -707,18 +707,10 @@ const WatchPageContent = () => {
                             </Link>
                         </div>
                     )}
-                </div>
 
-                {/* ── SIDEBAR / CHANNEL LIST ── */}
-                {!isCustomFullscreen && (
-                    <div className="w-full lg:w-80 bg-gray-900/30 border-t border-gray-800 lg:border-t-0 lg:border-l flex flex-col shrink-0 lg:h-[calc(100dvh-64px)] overflow-hidden">
-
-                        {/* Sidebar header */}
-                        <div className="p-4 border-b border-gray-800 bg-gray-900/50 flex flex-col gap-4 shrink-0">
-                            <Link to={countrySlug ? `/country/${countrySlug}` : '/'} className="text-gray-400 hover:text-white text-xs flex items-center gap-1.5 cursor-pointer font-bold transition-colors group hidden lg:flex">
-                                <span className="transform group-hover:-translate-x-0.5 transition-transform">←</span> Exit Player
-                            </Link>
-
+                    {/* ── FILTERS (MOBILE ONLY, BELOW VIDEO) ── */}
+                    {!isCustomFullscreen && (
+                        <div className="lg:hidden w-full bg-gray-900 p-4 border-b border-gray-800 flex flex-col gap-3 shrink-0 sticky top-[calc(40vh+140px)] z-20">
                             {/* Search bar */}
                             <div className="relative">
                                 <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -729,10 +721,9 @@ const WatchPageContent = () => {
                                     placeholder="Search channels..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2.5 bg-gray-900/80 border border-gray-800 rounded-xl text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/30 transition-all"
+                                    className="w-full pl-10 pr-4 py-2.5 bg-gray-950/80 border border-gray-800 rounded-xl text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/30 transition-all"
                                 />
                             </div>
-
                             {/* Filter tabs */}
                             <div className="flex gap-2">
                                 {[
@@ -753,30 +744,92 @@ const WatchPageContent = () => {
                                     </button>
                                 ))}
                             </div>
+                            {/* Category dropdown and channel count */}
+                            <div className="flex items-center gap-3">
+                                <select
+                                    value={selectedCategory}
+                                    onChange={(e) => setSelectedCategory(e.target.value)}
+                                    className="flex-1 px-3 py-2 bg-gray-950/80 border border-gray-800 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/30 transition-all"
+                                >
+                                    {getUniqueCategories().map((cat) => (
+                                        <option key={cat} value={cat} className="bg-gray-900">
+                                            {cat === 'all' ? 'All Categories' : cat}
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className="text-xs font-medium text-gray-400 shrink-0">
+                                    {totalChannels > 0 ? totalChannels : getFilteredChannels().length} channels
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
 
-                            {/* Category dropdown */}
+                {/* ── SIDEBAR / CHANNEL LIST ── */}
+                {!isCustomFullscreen && (
+                    <div className="w-full lg:w-80 bg-gray-900/30 border-t border-gray-800 lg:border-t-0 lg:border-l flex flex-col shrink-0 lg:h-[calc(100dvh-64px)] overflow-hidden z-10">
+
+                        {/* Sidebar header */}
+                        <div className="p-4 border-b border-gray-800 bg-gray-900/50 flex flex-col gap-4 shrink-0">
+                            <Link to={countrySlug ? `/country/${countrySlug}` : '/'} className="text-gray-400 hover:text-white text-xs flex items-center gap-1.5 cursor-pointer font-bold transition-colors group hidden lg:flex">
+                                <span className="transform group-hover:-translate-x-0.5 transition-transform">←</span> Exit Player
+                            </Link>
+
+                            {/* Search bar (DESKTOP ONLY) */}
+                            <div className="relative hidden lg:block">
+                                <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                                <input
+                                    type="text"
+                                    placeholder="Search channels..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-2.5 bg-gray-900/80 border border-gray-800 rounded-xl text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/30 transition-all"
+                                />
+                            </div>
+
+                            {/* Filter tabs (DESKTOP ONLY) */}
+                            <div className="hidden lg:flex gap-2">
+                                {[
+                                    { id: 'all', label: 'All', icon: '🏷️' },
+                                    { id: 'favs', label: 'Favs', icon: '♡' },
+                                    { id: 'sports', label: 'Sports', icon: '🏆' }
+                                ].map((tab) => (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => setActiveFilter(tab.id)}
+                                        className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all ${activeFilter === tab.id
+                                            ? 'bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg shadow-red-500/20'
+                                            : 'text-gray-400 hover:text-white hover:bg-gray-900/60'
+                                            }`}
+                                    >
+                                        <span>{tab.icon}</span>
+                                        <span>{tab.label}</span>
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Category dropdown (DESKTOP ONLY) */}
                             <select
                                 value={selectedCategory}
                                 onChange={(e) => setSelectedCategory(e.target.value)}
-                                className="w-full px-3 py-2 bg-gray-900/80 border border-gray-800 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/30 transition-all"
+                                className="hidden lg:block w-full px-3 py-2 bg-gray-900/80 border border-gray-800 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/30 transition-all"
                             >
                                 {getUniqueCategories().map((cat) => (
-                                    <option key={cat} value={cat} className="bg-gray-900">
+                                    <option key={cat} value={cat} className="bg-gray-90">
                                         {cat === 'all' ? 'All Categories' : cat}
                                     </option>
                                 ))}
                             </select>
 
-                            {/* Channel count */}
-                            <div className="text-xs text-gray-400 font-medium">
+                            {/* Channel count (DESKTOP ONLY) */}
+                            <div className="text-xs text-gray-400 font-medium hidden lg:block">
                                 {totalChannels > 0 ? totalChannels : getFilteredChannels().length} channels
                             </div>
                         </div>
 
-                        {/* Mobile header for channel list */}
-                        <div className="lg:hidden px-4 pt-3 pb-2 border-b border-gray-800 shrink-0">
-                            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest">More Channels</h3>
-                        </div>
+
 
                         {/* Channel list */}
                         <div
