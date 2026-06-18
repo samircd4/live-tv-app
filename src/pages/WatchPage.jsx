@@ -624,21 +624,6 @@ const WatchPageContent = () => {
                         <div
                             className={`absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pt-12 pb-3 px-3 flex flex-col gap-2 z-50 transition-opacity duration-300 ${showControls && !isPreRollActive ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
                         >
-                            {/* Quality settings panel */}
-                            {showSettings && (
-                                <div className="absolute bottom-full mb-2 right-12 bg-gray-950/95 border border-gray-800 rounded-xl p-2 w-36 shadow-2xl backdrop-blur-md z-50 animate-fade-in">
-                                    <p className="text-[10px] uppercase tracking-wider text-gray-400 font-bold px-2 py-1 border-b border-gray-900 mb-1">Quality</p>
-                                    <button onClick={() => changeStreamQuality(-1)} className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-between cursor-pointer ${currentQuality === -1 ? 'bg-yellow-500 text-black font-bold' : 'hover:bg-gray-900 text-gray-300'}`}>
-                                        Auto <span>⚡</span>
-                                    </button>
-                                    {qualities.map((q) => (
-                                        <button key={q.index} onClick={() => changeStreamQuality(q.index)} className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-between cursor-pointer ${currentQuality === q.index ? 'bg-yellow-500 text-black font-bold' : 'hover:bg-gray-900 text-gray-300'}`}>
-                                            {q.height}p {q.height >= 720 && <span className="text-[9px] bg-red-600 text-white font-black px-1 rounded">HD</span>}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-
                             <div className="flex items-center justify-between w-full">
                                 <div className="flex items-center gap-3">
                                     {/* Play/Pause */}
@@ -673,10 +658,27 @@ const WatchPageContent = () => {
                                 </div>
 
                                 <div className="flex items-center gap-1">
-                                    {/* Settings */}
-                                    <button onClick={(e) => { e.stopPropagation(); setShowSettings(!showSettings); }} className={`p-2 transition-colors cursor-pointer ${showSettings ? 'text-yellow-400' : 'text-gray-300 hover:text-yellow-400'}`}>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
-                                    </button>
+                                    {/* Settings with relative container */}
+                                    <div className="relative">
+                                        {/* Quality settings panel */}
+                                        {showSettings && (
+                                            <div className="absolute bottom-full mb-2 right-0 bg-gray-950/95 border border-gray-800 rounded-xl p-2 w-36 shadow-2xl backdrop-blur-md z-50 animate-fade-in">
+                                                <p className="text-[10px] uppercase tracking-wider text-gray-400 font-bold px-2 py-1 border-b border-gray-900 mb-1">Quality</p>
+                                                <button onClick={() => changeStreamQuality(-1)} className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-between cursor-pointer ${currentQuality === -1 ? 'bg-yellow-500 text-black font-bold' : 'hover:bg-gray-900 text-gray-300'}`}>
+                                                    Auto <span>⚡</span>
+                                                </button>
+                                                {qualities.map((q) => (
+                                                    <button key={q.index} onClick={() => changeStreamQuality(q.index)} className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-between cursor-pointer ${currentQuality === q.index ? 'bg-yellow-500 text-black font-bold' : 'hover:bg-gray-900 text-gray-300'}`}>
+                                                        {q.height}p {q.height >= 720 && <span className="text-[9px] bg-red-600 text-white font-black px-1 rounded">HD</span>}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                        {/* Settings button */}
+                                        <button onClick={(e) => { e.stopPropagation(); setShowSettings(!showSettings); }} className={`p-2 transition-colors cursor-pointer ${showSettings ? 'text-yellow-400' : 'text-gray-300 hover:text-yellow-400'}`}>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
+                                        </button>
+                                    </div>
                                     {/* Fullscreen */}
                                     <button onClick={toggleCustomFullscreen} className="p-2 bg-transparent text-gray-300 hover:text-yellow-400 cursor-pointer">
                                         {isCustomFullscreen
@@ -689,28 +691,9 @@ const WatchPageContent = () => {
                         </div>
                     </div>
 
-                    {/* ── CHANNEL INFO BAR (mobile only, below video) ── */}
-                    {!isCustomFullscreen && (
-                        <div className="lg:hidden bg-gray-900 border-b border-gray-800 px-4 py-2.5 flex items-center gap-3 shrink-0 sticky top-[40vh] z-20">
-                            {currentChannel?.logo && (
-                                <img src={currentChannel.logo} alt="" className="w-8 h-8 object-contain rounded bg-gray-950 border border-gray-800 p-0.5 shrink-0" />
-                            )}
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-bold text-white truncate">{currentChannel?.name || 'Loading...'}</p>
-                                <p className="text-[11px] text-gray-400">{currentChannel?.category || 'Live TV'}</p>
-                            </div>
-                            <Link
-                                to={countrySlug ? `/country/${countrySlug}` : '/'}
-                                className="text-xs font-bold text-gray-400 hover:text-white transition-colors flex items-center gap-1 shrink-0"
-                            >
-                                ← Back
-                            </Link>
-                        </div>
-                    )}
-
                     {/* ── FILTERS (MOBILE ONLY, BELOW VIDEO) ── */}
                     {!isCustomFullscreen && (
-                        <div className="lg:hidden w-full bg-gray-900 p-4 border-b border-gray-800 flex flex-col gap-3 shrink-0 sticky top-[calc(40vh+140px)] z-20">
+                        <div className="lg:hidden w-full bg-gray-900 p-4 border-b border-gray-800 flex flex-col gap-3 shrink-0 sticky top-[40vh] z-20">
                             {/* Search bar */}
                             <div className="relative">
                                 <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
