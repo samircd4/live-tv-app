@@ -63,6 +63,11 @@ const WatchPageContent = () => {
 
     const [currentChannel, setCurrentChannel] = useState(location.state?.channel || null);
     const [sidebarChannels, setSidebarChannels] = useState([]);
+    const [totalChannels, setTotalChannels] = useState(0);
+    const [allCategories, setAllCategories] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [hasMorePages, setHasMorePages] = useState(true);
+    const [loadingChannels, setLoadingChannels] = useState(false);
     const [showAd, setShowAd] = useState(false);
     const [isFirstAdShow, setIsFirstAdShow] = useState(true);
     const [isPreRollActive, setIsPreRollActive] = useState(true);
@@ -83,6 +88,7 @@ const WatchPageContent = () => {
         return saved ? JSON.parse(saved) : [];
     });
     const [selectedCategory, setSelectedCategory] = useState('all');
+    const channelListRef = useRef(null);
 
     useEffect(() => {
         isPreRollActiveRef.current = isPreRollActive;
@@ -102,40 +108,103 @@ const WatchPageContent = () => {
         { id: 10, name: 'A Sports', category: 'Sports', logo: null, stream_url: 'https://example.com/stream10' },
     ];
 
-    useEffect(() => {
-        const fetchSidebarData = async () => {
-            try {
-                // Try to fetch from API first
-                const data = await tvService.getChannels();
-                let channelsList = Array.isArray(data) ? data : (data?.results || []);
+    const fetchChannels = async (page = 1, append = false) => {
+        if (loadingChannels) return;
+        setLoadingChannels(true);
 
-                // If no channels from API, use dummy data
-                if (channelsList.length === 0) {
-                    channelsList = dummyChannels;
-                }
+        try {
+            // Try to fetch from API first
+            const data = await tvService.getChannels(countrySlug, page);
+            let channelsList = Array.isArray(data) ? data : (data?.results || []);
 
+            // If no channels from API, use dummy data
+            if (channelsList.length === 0 && page === 1) {
+                channelsList = dummyChannels;
+            }
+
+            if (append) {
+                setSidebarChannels(prev => [...prev, ...channelsList]);
+                // Add new categories from the newly loaded channels
+                setAllCategories(prev => {
+                    const existingCategories = new Set(prev);
+                    channelsList.forEach(chan => {
+                        if (chan.category) {
+                            existingCategories.add(chan.category);
+                        }
+                    });
+                    return [...existingCategories];
+                });
+            } else {
                 setSidebarChannels(channelsList);
-
-                if (!currentChannel && channelsList.length > 0) {
-                    const activeMatch = channelsList.find(ch => ch.id.toString() === channelId);
-                    if (activeMatch) {
-                        setCurrentChannel(activeMatch);
-                    } else {
-                        // If no match, set the first channel as current
-                        setCurrentChannel(channelsList[0]);
+                // Set initial categories from first page
+                const initialCategories = new Set();
+                channelsList.forEach(chan => {
+                    if (chan.category) {
+                        initialCategories.add(chan.category);
                     }
+                });
+                setAllCategories([...initialCategories]);
+            }
+
+            // Update total channel count from API
+            if (data && typeof data.count === 'number') {
+                setTotalChannels(data.count);
+            } else if (!append && channelsList.length > 0) {
+                setTotalChannels(channelsList.length);
+            }
+
+            // Check if there are more pages (check for next link or count)
+            if (data && data.next) {
+                setHasMorePages(true);
+            } else if (data && data.count && sidebarChannels.length + channelsList.length >= data.count) {
+                setHasMorePages(false);
+            } else {
+                setHasMorePages(channelsList.length >= 20); // Assume pagination if 20+ items
+            }
+
+            if (!currentChannel && (append ? sidebarChannels : channelsList).length > 0) {
+                const allChannels = append ? [...sidebarChannels, ...channelsList] : channelsList;
+                const activeMatch = allChannels.find(ch => ch.id.toString() === channelId);
+                if (activeMatch) {
+                    setCurrentChannel(activeMatch);
+                } else {
+                    // If no match, set the first channel as current
+                    setCurrentChannel(allChannels[0]);
                 }
-            } catch (err) {
-                console.error("Failed to load sidebar matrix tracks:", err);
-                // Fallback to dummy data on error
+            }
+        } catch (err) {
+            console.error("Failed to load channels:", err);
+            // Fallback to dummy data on error for first page
+            if (page === 1) {
                 setSidebarChannels(dummyChannels);
                 if (!currentChannel) {
                     setCurrentChannel(dummyChannels[0]);
                 }
             }
-        };
-        fetchSidebarData();
+        } finally {
+            setLoadingChannels(false);
+        }
+    };
+
+    useEffect(() => {
+        setCurrentPage(1);
+        setHasMorePages(true);
+        fetchChannels(1, false);
     }, [channelId, countrySlug]);
+
+    // Infinite scroll handler
+    const handleScroll = (e) => {
+        const container = e.target;
+        if (container.scrollTop + container.clientHeight >= container.scrollHeight - 200) {
+            if (hasMorePages && !loadingChannels) {
+                setCurrentPage(prev => {
+                    const nextPage = prev + 1;
+                    fetchChannels(nextPage, true);
+                    return nextPage;
+                });
+            }
+        }
+    };
 
     useEffect(() => {
         const handleKeyDown = (e) => {
@@ -412,8 +481,7 @@ const WatchPageContent = () => {
     };
 
     const getUniqueCategories = () => {
-        const categories = [...new Set(sidebarChannels.map(chan => chan.category).filter(Boolean))];
-        return ['all', ...categories];
+        return ['all', ...allCategories];
     };
 
     const getFilteredChannels = () => {
@@ -430,15 +498,19 @@ const WatchPageContent = () => {
         // Active filter (All, Favs, Sports)
         if (activeFilter === 'favs') {
             filtered = filtered.filter(chan => favorites.includes(chan.id));
+            // Only apply category filter when not in sports mode
+            if (selectedCategory !== 'all') {
+                filtered = filtered.filter(chan => chan.category === selectedCategory);
+            }
         } else if (activeFilter === 'sports') {
             filtered = filtered.filter(chan =>
                 chan.category?.toLowerCase().includes('sport')
             );
-        }
-
-        // Category dropdown filter
-        if (selectedCategory !== 'all') {
-            filtered = filtered.filter(chan => chan.category === selectedCategory);
+        } else {
+            // Category dropdown filter only applies when activeFilter is 'all'
+            if (selectedCategory !== 'all') {
+                filtered = filtered.filter(chan => chan.category === selectedCategory);
+            }
         }
 
         return filtered;
@@ -472,18 +544,26 @@ const WatchPageContent = () => {
                         style={{ aspectRatio: isCustomFullscreen ? undefined : undefined }}
                         onClick={handleVideoTap}
                     >
-                        {/* Mobile: Set height to 60vh, Tablet/Desktop: Keep 16:9 aspect ratio */}
+                        {/* Mobile: Minimum height 60vh, Desktop: Keep 16:9 aspect ratio */}
                         <style>{`
                             @media (max-width: 767px) {
                                 .video-container {
+                                    min-height: 60vh !important;
                                     height: 60vh !important;
                                     aspect-ratio: unset !important;
+                                    position: sticky !important;
+                                    top: 0 !important;
+                                    z-index: 10 !important;
                                 }
                             }
                             @media (min-width: 768px) {
                                 .video-container {
                                     aspect-ratio: 16/9 !important;
                                     height: unset !important;
+                                    min-height: auto !important;
+                                    position: relative !important;
+                                    top: auto !important;
+                                    z-index: auto !important;
                                 }
                             }
                         `}</style>
@@ -689,7 +769,7 @@ const WatchPageContent = () => {
 
                             {/* Channel count */}
                             <div className="text-xs text-gray-400 font-medium">
-                                {getFilteredChannels().length} channels
+                                {totalChannels > 0 ? totalChannels : getFilteredChannels().length} channels
                             </div>
                         </div>
 
@@ -699,7 +779,11 @@ const WatchPageContent = () => {
                         </div>
 
                         {/* Channel list */}
-                        <div className="p-2 space-y-1 overflow-y-auto custom-scrollbar flex-1 lg:flex-1 lg:max-h-none max-h-[50vh]">
+                        <div
+                            ref={channelListRef}
+                            onScroll={handleScroll}
+                            className="p-2 space-y-1 overflow-y-auto custom-scrollbar flex-1 lg:flex-1 lg:max-h-none max-h-[50vh]"
+                        >
                             {getFilteredChannels().length === 0 ? (
                                 <p className="text-xs text-gray-600 text-center py-6">No channels found</p>
                             ) : (
@@ -769,6 +853,13 @@ const WatchPageContent = () => {
                                         </div>
                                     );
                                 })
+                            )}
+
+                            {/* Loading indicator for infinite scroll */}
+                            {loadingChannels && (
+                                <div className="flex justify-center py-4">
+                                    <div className="w-6 h-6 border-2 border-gray-600 border-t-yellow-500 rounded-full animate-spin" />
+                                </div>
                             )}
                         </div>
                     </div>

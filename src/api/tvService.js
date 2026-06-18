@@ -9,10 +9,15 @@ export const tvService = {
     return response.data;
   },
 
-  getChannels: async (countrySlug = null) => {
+  getChannels: async (countrySlug = null, page = 1) => {
     let url = '/live-tv/channels/';
+    const params = new URLSearchParams();
     if (countrySlug) {
-      url += `?country_slug=${countrySlug}`;
+      params.append('country_slug', countrySlug);
+    }
+    params.append('page', page.toString());
+    if (params.toString()) {
+      url += `?${params.toString()}`;
     }
     const response = await axiosInstance.get(url);
     return response.data;
