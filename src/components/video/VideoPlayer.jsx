@@ -199,7 +199,7 @@ export const VideoPlayer = ({ currentChannel, isCustomFullscreen, setIsCustomFul
             ref={workspaceRef} 
             onMouseMove={handleMouseMove} 
             onMouseLeave={() => { if (isPlaying && !isPreRollActive) setShowControls(false); }}
-            className={isCustomFullscreen ? 'fixed inset-0 z-50 bg-black flex flex-col' : 'w-full lg:flex-1 bg-black flex flex-col relative min-h-0'}
+            className={isCustomFullscreen ? 'fixed inset-0 z-50 bg-black flex flex-col' : 'w-full h-[30vh] lg:h-auto lg:flex-1 bg-black flex flex-col relative min-h-0 shrink-0 lg:shrink'}
         >
             <div className="video-container relative w-full h-full flex items-center justify-center bg-gray-950 overflow-hidden" onClick={() => setShowControls(true)}>
                 <style>{`

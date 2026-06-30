@@ -19,7 +19,7 @@ export const ChannelSidebar = ({
     loadingChannels
 }) => {
     return (
-        <div className="w-full lg:w-80 bg-gray-900/30 border-t border-gray-800 lg:border-t-0 lg:border-l flex flex-col shrink-0 lg:h-full overflow-hidden z-10 min-h-0">
+        <div className="w-full lg:w-80 bg-gray-900/30 border-t border-gray-800 lg:border-t-0 lg:border-l flex flex-col flex-1 lg:flex-initial shrink-0 lg:h-full overflow-hidden z-10 min-h-0">
             <div className="p-4 border-b border-gray-800 bg-gray-900/50 flex flex-col gap-3 shrink-0">
                 <Link to={countrySlug ? `/country/${countrySlug}` : '/'} className="text-gray-400 hover:text-white text-xs flex items-center gap-1.5 font-bold transition-colors">
                     ← Exit Player
