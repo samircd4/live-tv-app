@@ -43,10 +43,10 @@ export const AuthProvider = ({ children }) => {
             const data = await authService.login(email, password);
             const token = data.access_token || data.access;
             const refresh = data.refresh_token || data.refresh;
-            
+
             if (token) localStorage.setItem('access_token', token);
             if (refresh) localStorage.setItem('refresh_token', refresh);
-            
+
             setIsAuthenticated(true);
             await fetchUserProfile();
             return { success: true };
@@ -106,4 +106,4 @@ export const AuthProvider = ({ children }) => {
     );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => useContext(AuthContext);

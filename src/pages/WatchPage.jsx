@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { Layout } from '../components/layout/Layout';
 import { VideoPlayer } from '../components/video/VideoPlayer';
 import { ChannelSidebar } from '../components/video/ChannelSidebar';
+import { WatchFooter } from '../components/layout/WatchFooter';
 
 export const WatchPage = () => {
     const { isAuthenticated, loading } = useAuth();
@@ -214,18 +215,21 @@ const WatchPageContent = () => {
 
     return (
         <Layout showFooter={false} showNavbar={!isCustomFullscreen} overflowHidden={true}>
-            <div className="flex flex-col lg:flex-row min-h-0 w-full h-[90vh]">
-                <VideoPlayer currentChannel={currentChannel} isCustomFullscreen={isCustomFullscreen} setIsCustomFullscreen={setIsCustomFullscreen} />
-                {!isCustomFullscreen && (
-                    <ChannelSidebar
-                        countrySlug={countrySlug} searchQuery={searchQuery} setSearchQuery={setSearchQuery}
-                        activeFilter={activeFilter} setActiveFilter={setActiveFilter} selectedCategory={selectedCategory}
-                        setSelectedCategory={setSelectedCategory} allCategories={computedCategories} totalChannels={totalChannels}
-                        filteredChannels={getFilteredChannels()} currentChannel={currentChannel} favorites={favorites}
-                        toggleFavorite={toggleFavorite} handleChannelSwitch={(ch) => { setCurrentChannel(ch); navigate(`/watch/${ch.id}`, { state: { channel: ch, countrySlug } }); }}
-                        handleScroll={handleScroll} loadingChannels={loadingChannels}
-                    />
-                )}
+            <div className="flex-1 flex flex-col min-h-0 w-full">
+                <div className="flex flex-col lg:flex-row flex-1 min-h-0 w-full">
+                    <VideoPlayer currentChannel={currentChannel} isCustomFullscreen={isCustomFullscreen} setIsCustomFullscreen={setIsCustomFullscreen} />
+                    {!isCustomFullscreen && (
+                        <ChannelSidebar
+                            countrySlug={countrySlug} searchQuery={searchQuery} setSearchQuery={setSearchQuery}
+                            activeFilter={activeFilter} setActiveFilter={setActiveFilter} selectedCategory={selectedCategory}
+                            setSelectedCategory={setSelectedCategory} allCategories={computedCategories} totalChannels={totalChannels}
+                            filteredChannels={getFilteredChannels()} currentChannel={currentChannel} favorites={favorites}
+                            toggleFavorite={toggleFavorite} handleChannelSwitch={(ch) => { setCurrentChannel(ch); navigate(`/watch/${ch.id}`, { state: { channel: ch, countrySlug } }); }}
+                            handleScroll={handleScroll} loadingChannels={loadingChannels}
+                        />
+                    )}
+                </div>
+                {!isCustomFullscreen && <WatchFooter />}
             </div>
         </Layout>
     );
