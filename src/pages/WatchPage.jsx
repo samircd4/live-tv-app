@@ -50,7 +50,7 @@ const WatchPageContent = () => {
     const [isCustomFullscreen, setIsCustomFullscreen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [activeFilter, setActiveFilter] = useState('all');
-    const [selectedCategory, setSelectedCategory] = useState('all');
+    const [selectedCategory, setSelectedCategory] = useState('FIFA WORLD CUP 2026');
     const [favorites, setFavorites] = useState(() => {
         const saved = localStorage.getItem('favoriteChannels');
         return saved ? JSON.parse(saved) : [];
@@ -91,6 +91,12 @@ const WatchPageContent = () => {
             let channelsList = data?.results || (Array.isArray(data) ? data : []);
 
             if (channelsList.length === 0) {
+                if (page === 1 && selectedCategory === 'FIFA WORLD CUP 2026') {
+                    setLoadingChannels(false);
+                    setIsInitialLoad(false);
+                    setSelectedCategory('all');
+                    return;
+                }
                 if (!append) setSidebarChannels([]);
                 setHasMorePages(false);
                 setLoadingChannels(false);
@@ -123,7 +129,13 @@ const WatchPageContent = () => {
             console.error("Failed to load channels:", err);
             setHasMorePages(false);
             if (page === 1) {
-                setSidebarChannels([]);
+                if (selectedCategory === 'FIFA WORLD CUP 2026') {
+                    setLoadingChannels(false);
+                    setIsInitialLoad(false);
+                    setSelectedCategory('all');
+                } else {
+                    setSidebarChannels([]);
+                }
             }
         } finally {
             setLoadingChannels(false);
