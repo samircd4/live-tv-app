@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
-import { useParams, useLocation, Link, useNavigate } from 'react-router-dom';
+import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { tvService } from '../api/tvService';
 import { useAuth } from '../context/AuthContext';
 import { Layout } from '../components/layout/Layout';
@@ -57,12 +57,7 @@ const WatchPageContent = () => {
     });
     const countrySlug = location.state?.countrySlug || '';
 
-    const dummyChannels = useMemo(() => [
-        { id: 1, name: 'Football World Cup 2026 (1)', category: 99, category_name: 'Sports', logo: null, stream_url: 'https://example.com/stream1' },
-        { id: 2, name: 'Football World Cup 2026 Sky', category: 99, category_name: 'Sports', logo: null, stream_url: 'https://example.com/stream2' }
-    ], []);
-
-    // Build unique categories from flat API response (category: id, category_name: name)
+    // Build unique categories from flat API response (using category_name as the identifier)
     useEffect(() => {
         const loadInitialCategories = async () => {
             try {
@@ -71,10 +66,10 @@ const WatchPageContent = () => {
 
                 const categoriesMap = new Map();
                 channelsList.forEach(chan => {
-                    if (chan.category != null && chan.category_name) {
-                        const catId = chan.category.toString();
-                        if (!categoriesMap.has(catId)) {
-                            categoriesMap.set(catId, { id: catId, name: chan.category_name });
+                    if (chan.category_name) {
+                        const catName = chan.category_name;
+                        if (!categoriesMap.has(catName)) {
+                            categoriesMap.set(catName, { id: catName, name: catName });
                         }
                     }
                 });
@@ -94,10 +89,6 @@ const WatchPageContent = () => {
         try {
             const data = await tvService.getChannels(countrySlug, page, selectedCategory);
             let channelsList = data?.results || (Array.isArray(data) ? data : []);
-
-            if (channelsList.length === 0 && page === 1) {
-                channelsList = dummyChannels;
-            }
 
             if (channelsList.length === 0) {
                 if (!append) setSidebarChannels([]);
@@ -132,14 +123,13 @@ const WatchPageContent = () => {
             console.error("Failed to load channels:", err);
             setHasMorePages(false);
             if (page === 1) {
-                setSidebarChannels(dummyChannels);
-                if (!currentChannel) setCurrentChannel(dummyChannels[0]);
+                setSidebarChannels([]);
             }
         } finally {
             setLoadingChannels(false);
             setIsInitialLoad(false);
         }
-    }, [countrySlug, channelId, currentChannel, dummyChannels, selectedCategory]);
+    }, [countrySlug, channelId, currentChannel, selectedCategory]);
 
     // Reset and reload on filter/category change
     useEffect(() => {
