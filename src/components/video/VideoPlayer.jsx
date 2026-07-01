@@ -34,6 +34,7 @@ export const VideoPlayer = ({ currentChannel, isCustomFullscreen, setIsCustomFul
     const [qualities, setQualities] = useState([]);
     const [currentQuality, setCurrentQuality] = useState(-1);
     const [showSettings, setShowSettings] = useState(false);
+    const [isPiP, setIsPiP] = useState(false);
 
     useEffect(() => {
         isPreRollActiveRef.current = isPreRollActive;
@@ -135,12 +136,28 @@ export const VideoPlayer = ({ currentChannel, isCustomFullscreen, setIsCustomFul
         return () => clearTimeout(timer);
     }, [showAd, isPreRollActive, isFirstAdShow]);
 
-    const handleMouseMove = () => {
-        setShowControls(true);
+    const scheduleHideControls = () => {
         if (mouseTimerRef.current) clearTimeout(mouseTimerRef.current);
         mouseTimerRef.current = setTimeout(() => {
             if (isPlaying && !showSettings && !isPreRollActive) setShowControls(false);
         }, 3500);
+    };
+
+    const handleMouseMove = () => {
+        setShowControls(true);
+        scheduleHideControls();
+    };
+
+    const handleTouchStart = (e) => {
+        // Don't toggle if touching a button/control
+        if (e.target.closest('button, input, a')) return;
+        if (showControls) {
+            setShowControls(false);
+            if (mouseTimerRef.current) clearTimeout(mouseTimerRef.current);
+        } else {
+            setShowControls(true);
+            scheduleHideControls();
+        }
     };
 
     const togglePlay = (e) => {
@@ -195,6 +212,55 @@ export const VideoPlayer = ({ currentChannel, isCustomFullscreen, setIsCustomFul
         }
     };
 
+    const togglePiP = async () => {
+        const video = videoRef.current;
+        if (!video) return;
+        try {
+            if (document.pictureInPictureElement) {
+                await document.exitPictureInPicture();
+                setIsPiP(false);
+            } else if (document.pictureInPictureEnabled) {
+                await video.requestPictureInPicture();
+                setIsPiP(true);
+            }
+        } catch (e) {
+            console.warn('PiP not supported or blocked:', e);
+        }
+    };
+
+    // Sync PiP state with browser events
+    useEffect(() => {
+        const video = videoRef.current;
+        if (!video) return;
+        const onEnterPiP = () => setIsPiP(true);
+        const onLeavePiP = () => setIsPiP(false);
+        video.addEventListener('enterpictureinpicture', onEnterPiP);
+        video.addEventListener('leavepictureinpicture', onLeavePiP);
+        return () => {
+            video.removeEventListener('enterpictureinpicture', onEnterPiP);
+            video.removeEventListener('leavepictureinpicture', onLeavePiP);
+        };
+    }, []);
+
+    // Auto-PiP when user switches tabs
+    useEffect(() => {
+        const handleVisibilityChange = async () => {
+            const video = videoRef.current;
+            if (!video || !document.pictureInPictureEnabled || isPreRollActiveRef.current) return;
+            try {
+                if (document.hidden && !video.paused && !document.pictureInPictureElement) {
+                    await video.requestPictureInPicture();
+                } else if (!document.hidden && document.pictureInPictureElement === video) {
+                    await document.exitPictureInPicture();
+                }
+            } catch (e) {
+                // PiP blocked or not supported — silently ignore
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    }, []);
+
     const handlePreRollClose = () => {
         setIsPreRollActive(false);
         isPreRollActiveRef.current = false;
@@ -213,8 +279,9 @@ export const VideoPlayer = ({ currentChannel, isCustomFullscreen, setIsCustomFul
     return (
         <div 
             ref={workspaceRef} 
-            onMouseMove={handleMouseMove} 
+            onMouseMove={handleMouseMove}
             onMouseLeave={() => { if (isPlaying && !isPreRollActive) setShowControls(false); }}
+            onTouchStart={handleTouchStart}
             className={isCustomFullscreen ? 'fixed inset-0 z-50 bg-black flex flex-col' : 'w-full h-[30vh] lg:h-auto lg:flex-1 bg-black flex flex-col relative min-h-0 shrink-0 lg:shrink'}
             style={{ cursor: showControls ? 'default' : 'none' }}
         >
@@ -224,7 +291,7 @@ export const VideoPlayer = ({ currentChannel, isCustomFullscreen, setIsCustomFul
                     @media (min-width: 768px) { .video-container { aspect-ratio: 16/9 !important; height: auto !important; } }
                 `}</style>
                 
-                <video ref={videoRef} playsInline muted={isMuted} className="relative z-10 w-full h-full object-contain cursor-pointer" onClick={togglePlay} />
+                <video ref={videoRef} playsInline muted={isMuted} className="relative z-10 w-full h-full object-contain" style={{ cursor: 'inherit' }} onClick={togglePlay} />
 
                 {!isPreRollActive && (
                     <a href="https://sarker.shop" target="_blank" rel="noopener noreferrer" className="absolute top-4 right-4 z-40 p-1.5 rounded-md bg-white/80 backdrop-blur-sm transition-opacity duration-300">
@@ -283,6 +350,9 @@ export const VideoPlayer = ({ currentChannel, isCustomFullscreen, setIsCustomFul
                                 )}
                                 <button onClick={(e) => { e.stopPropagation(); setShowSettings(!showSettings); }} className="text-gray-300 hover:text-white text-lg cursor-pointer transition-colors">⚙️</button>
                             </div>
+                            {document.pictureInPictureEnabled && (
+                                <button onClick={(e) => { e.stopPropagation(); togglePiP(); }} title="Picture in Picture" className={`text-lg cursor-pointer transition-colors ${isPiP ? 'text-yellow-400' : 'text-gray-300 hover:text-white'}`}>⧉</button>
+                            )}
                             <button onClick={toggleCustomFullscreen} className="text-gray-300 hover:text-white text-lg cursor-pointer transition-colors">⛶</button>
                         </div>
                     </div>

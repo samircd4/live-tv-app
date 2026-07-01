@@ -47,7 +47,7 @@ export const NoticeTicker = () => {
 
     return (
         <div
-            className="absolute inset-x-0 bottom-0 z-40 h-7 xs:h-8 sm:h-10 md:h-14 lg:h-16 flex items-center overflow-hidden select-none border-t border-yellow-500/20 bg-black/85 backdrop-blur-xl shadow-[0_0_40px_rgba(255,193,7,0.15)]"
+            className="absolute inset-x-0 bottom-0 z-40 h-6 sm:h-9 md:h-12 lg:h-16 flex items-center overflow-hidden select-none border-t border-yellow-500/20 bg-black/90 backdrop-blur-xl shadow-[0_0_30px_rgba(255,193,7,0.12)]"
             onMouseEnter={(e) => {
                 e.stopPropagation();
                 setPaused(true);
@@ -63,26 +63,23 @@ export const NoticeTicker = () => {
             <div className="relative flex-1 h-full overflow-hidden bg-gradient-to-r from-gray-950/80 via-black/60 to-gray-950/80 flex items-center">
                 <div
                     className="flex whitespace-nowrap animate-marquee"
-                    style={{
-                        animationPlayState: paused ? "paused" : "running"
-                    }}
+                    style={{ animationPlayState: paused ? "paused" : "running" }}
                 >
-                    <span className="text-yellow-400 font-extrabold text-[8px] xs:text-[9px] sm:text-xs md:text-sm lg:text-2xl pr-2 sm:pr-4">
+                    <span className="text-yellow-400 font-bold text-[7px] sm:text-[11px] md:text-sm lg:text-2xl pr-1 sm:pr-4">
                         {combinedText}
                     </span>
-                    <span className="text-yellow-400 font-extrabold text-[8px] xs:text-[9px] sm:text-xs md:text-sm lg:text-2xl pr-2 sm:pr-4">
+                    <span className="text-yellow-400 font-bold text-[7px] sm:text-[11px] md:text-sm lg:text-2xl pr-1 sm:pr-4">
                         {combinedText}
                     </span>
                 </div>
             </div>
 
             {/* Right Information Panel */}
-            <div className="h-full shrink-0 flex flex-col items-center justify-center px-1 sm:px-2 md:px-3 lg:px-6 bg-gradient-to-l from-yellow-500 via-amber-400 to-yellow-500 text-black">
-                <div className="text-center font-black text-[7px] xs:text-[8px] sm:text-xs md:text-sm lg:text-2xl hidden sm:block">
+            <div className="h-full shrink-0 flex flex-col items-center justify-center px-1 sm:px-3 md:px-4 lg:px-6 bg-gradient-to-l from-yellow-500 via-amber-400 to-yellow-500 text-black">
+                <div className="text-center font-black text-[7px] sm:text-xs md:text-sm lg:text-2xl hidden sm:block leading-none">
                     {formatDate(currentTime)}
                 </div>
-
-                <div className="font-mono text-[7px] xs:text-[8px] sm:text-[10px] md:text-xs lg:text-2xl font-black tracking-tight sm:tracking-[0.1em] md:tracking-[0.15em] bg-black text-yellow-400 px-0.5 sm:px-1 md:px-2 lg:px-4 py-0 sm:py-0.5 rounded sm:rounded-lg">
+                <div className="font-mono text-[6px] sm:text-[10px] md:text-xs lg:text-2xl font-black tracking-tight md:tracking-[0.15em] bg-black text-yellow-400 px-0.5 sm:px-2 md:px-3 lg:px-4 py-0 rounded sm:rounded-md leading-tight">
                     {formatTime(currentTime)}
                 </div>
             </div>
