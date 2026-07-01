@@ -174,8 +174,24 @@ export const VideoPlayer = ({ currentChannel, isCustomFullscreen, setIsCustomFul
         if (!workspace) return;
         if (!document.fullscreenElement) {
             await workspace.requestFullscreen();
+            // Auto-rotate to landscape on mobile devices
+            try {
+                if (screen.orientation && screen.orientation.lock) {
+                    await screen.orientation.lock('landscape');
+                }
+            } catch (e) {
+                // Screen orientation lock not supported or permission denied – ignore
+            }
         } else {
             await document.exitFullscreen();
+            // Unlock orientation when exiting fullscreen
+            try {
+                if (screen.orientation && screen.orientation.unlock) {
+                    screen.orientation.unlock();
+                }
+            } catch (e) {
+                // ignore
+            }
         }
     };
 
@@ -200,6 +216,7 @@ export const VideoPlayer = ({ currentChannel, isCustomFullscreen, setIsCustomFul
             onMouseMove={handleMouseMove} 
             onMouseLeave={() => { if (isPlaying && !isPreRollActive) setShowControls(false); }}
             className={isCustomFullscreen ? 'fixed inset-0 z-50 bg-black flex flex-col' : 'w-full h-[30vh] lg:h-auto lg:flex-1 bg-black flex flex-col relative min-h-0 shrink-0 lg:shrink'}
+            style={{ cursor: showControls ? 'default' : 'none' }}
         >
             <div className="video-container relative w-full h-full flex items-center justify-center bg-gray-950 overflow-hidden" onClick={() => setShowControls(true)}>
                 <style>{`
@@ -222,7 +239,7 @@ export const VideoPlayer = ({ currentChannel, isCustomFullscreen, setIsCustomFul
                 )}
 
                 {!isPreRollActive && (
-                    <div className="absolute bottom-14 inset-x-0 z-30 pointer-events-none">
+                    <div className="absolute bottom-0 inset-x-0 z-30 pointer-events-none">
                         <NoticeTicker />
                     </div>
                 )}

@@ -47,7 +47,7 @@ export const NoticeTicker = () => {
 
     return (
         <div
-            className="absolute inset-x-0 bottom-0 z-40 h-10 sm:h-12 md:h-16 lg:h-20 flex items-center overflow-hidden select-none border-y border-yellow-500/20 bg-black/85 backdrop-blur-xl shadow-[0_0_40px_rgba(255,193,7,0.15)]"
+            className="absolute inset-x-0 bottom-0 z-40 h-7 xs:h-8 sm:h-10 md:h-14 lg:h-16 flex items-center overflow-hidden select-none border-t border-yellow-500/20 bg-black/85 backdrop-blur-xl shadow-[0_0_40px_rgba(255,193,7,0.15)]"
             onMouseEnter={(e) => {
                 e.stopPropagation();
                 setPaused(true);
@@ -67,10 +67,10 @@ export const NoticeTicker = () => {
                         animationPlayState: paused ? "paused" : "running"
                     }}
                 >
-                    <span className="text-yellow-400 font-extrabold text-[10px] sm:text-xs md:text-sm lg:text-2xl pr-4">
+                    <span className="text-yellow-400 font-extrabold text-[8px] xs:text-[9px] sm:text-xs md:text-sm lg:text-2xl pr-2 sm:pr-4">
                         {combinedText}
                     </span>
-                    <span className="text-yellow-400 font-extrabold text-[10px] sm:text-xs md:text-sm lg:text-2xl pr-4">
+                    <span className="text-yellow-400 font-extrabold text-[8px] xs:text-[9px] sm:text-xs md:text-sm lg:text-2xl pr-2 sm:pr-4">
                         {combinedText}
                     </span>
                 </div>
@@ -78,11 +78,11 @@ export const NoticeTicker = () => {
 
             {/* Right Information Panel */}
             <div className="h-full shrink-0 flex flex-col items-center justify-center px-1 sm:px-2 md:px-3 lg:px-6 bg-gradient-to-l from-yellow-500 via-amber-400 to-yellow-500 text-black">
-                <div className="text-center font-black text-[8px] sm:text-xs md:text-sm lg:text-2xl hidden sm:block">
+                <div className="text-center font-black text-[7px] xs:text-[8px] sm:text-xs md:text-sm lg:text-2xl hidden sm:block">
                     {formatDate(currentTime)}
                 </div>
 
-                <div className="font-mono text-[8px] sm:text-[10px] md:text-xs lg:text-2xl font-black tracking-[0.05em] sm:tracking-[0.1em] md:tracking-[0.15em] bg-black text-yellow-400 px-1 sm:px-1 md:px-2 lg:px-4 py-0.5 rounded-lg">
+                <div className="font-mono text-[7px] xs:text-[8px] sm:text-[10px] md:text-xs lg:text-2xl font-black tracking-tight sm:tracking-[0.1em] md:tracking-[0.15em] bg-black text-yellow-400 px-0.5 sm:px-1 md:px-2 lg:px-4 py-0 sm:py-0.5 rounded sm:rounded-lg">
                     {formatTime(currentTime)}
                 </div>
             </div>
